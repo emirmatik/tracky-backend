@@ -78,7 +78,7 @@ const updatePreferences = async (userId, preferences = {}) => {
   return newPreferences;
 };
 
-auth.getUserByEmail('sohiosi@gmail.com').then(console.log);
+// auth.getUserByEmail('sohiosi@gmail.com').then(console.log);
 
 module.exports = {
   auth,

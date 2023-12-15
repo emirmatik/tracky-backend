@@ -35,8 +35,8 @@ router.get('/:userId', async (req, res) => {
   }
 
   try {
-    const itemsById = await get(`tracked_items/${userId}`);
-    const items = Object.values(itemsById);
+    const itemsById = await get(`tracked_items/${userId}`, {});
+    const items = Object?.values(itemsById);
 
     return res.json(successJson(items));
   } catch (error) {
