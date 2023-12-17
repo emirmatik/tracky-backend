@@ -86,9 +86,9 @@ const checkItem = async (userId, item) => {
         const preferences = await get(`preferences/${userId}`);
 
         const subject = 'One of your tracked items has changed! | Tracky';
-        const body = `There is a change on your item ${item.title}! <br/>
+        const body = `There is a change on your item <strong>${item.title}</strong> <br/>
           Head to the Tracky app to see what's changed!!<br/><br/>
-          <a href="https://www.google.com">or see it on the website!</a>
+          <a href="${item.url}">or see it on the website!</a>
         `;
 
         if (preferences.enableEmailNotifications) {
