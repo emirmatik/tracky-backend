@@ -41,7 +41,17 @@ const sendMail = (email, subject, text, username) => {
 };
 
 const checkItem = async (userId, item) => {
-  const browser = await puppeteer.launch({ headless: 'new' });
+  const browser = await puppeteer.launch({
+    args: [
+      '--disable-setuid-sandbox',
+      '--no-sandbox',
+      '--no-zygote',
+    ],
+    headless: 'new',
+    executablePath: process.env.NODE_ENV === 'production'
+      ? process.env.PUPPETEER_EXECUTABLE_PATH
+      : puppeteer.executablePath(),
+  });
   try {
     const page = await browser.newPage();
 
