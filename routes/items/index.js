@@ -73,8 +73,9 @@ router.post('/:userId', async (req, res) => {
 
     if (Object.keys(usersAllItems).length === 1) {
       const user = await auth.getUser(userId);
+      const preferences = await get(`preferences/${userId}`);
 
-      sendMail(user.email, 'You took the first step! 🏁', `
+      sendMail(preferences.notifiedEmail, 'You took the first step! 🏁', `
         You've successfully started tracking your first item: <strong>${addedItem.title}</strong> 👀 <br/> <br/>
         We will send a message to this email every time there's a change on <strong>${addedItem.title}</strong>. If you want to change
         the email we send messages to, head to the Tracky app to do so. <br/> <br/>

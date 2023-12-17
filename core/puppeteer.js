@@ -92,7 +92,7 @@ const checkItem = async (userId, item) => {
         `;
 
         if (preferences.enableEmailNotifications) {
-          sendMail(user.email, subject, body, user.displayName);
+          sendMail(preferences.notifiedEmail, subject, body, user.displayName);
         }
       }
     }
