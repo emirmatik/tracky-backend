@@ -3,6 +3,7 @@
 const router = require('express').Router();
 
 const { errorJson, successJson } = require('../../core/api-response');
+const { sendMail } = require('../../core/puppeteer');
 const {
   auth,
   get,
@@ -68,6 +69,19 @@ router.post('/:userId', async (req, res) => {
   // add to the db
   try {
     const addedItem = await addTrackedItem(userId, item);
+    const usersAllItems = await get(`tracked_items/${userId}`, {});
+
+    if (Object.keys(usersAllItems).length === 1) {
+      const user = await auth.getUser(userId);
+
+      sendMail(user.email, 'You took the first step! 🏁', `
+        You've successfully started tracking your first item: <strong>${addedItem.title}</strong> 👀 <br/> <br/>
+        We will send a message to this email every time there's a change on <strong>${addedItem.title}</strong>. If you want to change
+        the email we send messages to, head to the Tracky app to do so. <br/> <br/>
+        We are so happy to see you here 🥳
+      `, user.displayName);
+    }
+
     return res.json(successJson(addedItem));
   } catch (error) {
     return res.status(400).json(errorJson(error));

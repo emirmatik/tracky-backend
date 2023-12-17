@@ -1,12 +1,44 @@
 const puppeteer = require('puppeteer-extra');
 const Stealth = require('puppeteer-extra-plugin-stealth');
+const nodemailer = require('nodemailer');
 
 const { KnownDevices } = require('puppeteer');
-const { get, updateTrackedItem } = require('../db/firebase');
+const { get, updateTrackedItem, auth } = require('../db/firebase');
 
 puppeteer.use(Stealth());
 
 const iPhone = KnownDevices['iPhone 13 Pro Max'];
+
+const sendMail = (email, subject, text, username) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_TRANSPORTER_MAIL,
+      pass: process.env.EMAIL_TRANSPORTER_PASSWORD,
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_TRANSPORTER_MAIL,
+    to: email,
+    subject,
+    html: `Hey <strong>${username}</strong>,<br/><br/>
+      ${text}<br/><br/>
+      Stay well, <br/>
+      Tracky team <br/>
+      <br/>
+      <img src="cid:tracky-banner"/>
+      <br/>
+    `,
+    attachments: [{
+      filename: 'tracky-banner.png',
+      path: `${__dirname}/../data/tracky-banner.png`,
+      cid: 'tracky-banner',
+    }],
+  };
+
+  transporter.sendMail(mailOptions);
+};
 
 const checkItem = async (userId, item) => {
   const browser = await puppeteer.launch({ headless: 'new' });
@@ -17,7 +49,6 @@ const checkItem = async (userId, item) => {
   const { html, url, xpath } = item;
 
   if (!html || !url || !xpath) {
-    // console.log('Cannot check: Invalid item');
     await browser.close();
     return;
   }
@@ -33,17 +64,26 @@ const checkItem = async (userId, item) => {
       const sectionHTML = await section.evaluate((x) => x.innerHTML);
 
       if (sectionHTML !== html) {
-        // there's a change!!
-
         // take a screenshot
-        await section.screenshot({ path: `./${item.title}.png` });
+        // await section.screenshot({ path: `./${item.title}.png` });
 
         // update the value and set it as updated
         const updatedValues = { html: sectionHTML, isUpdated: true };
 
         await updateTrackedItem(userId, updatedValues, item);
 
-        // TODO :: send notifications
+        const user = await auth.getUser(userId);
+        const preferences = await get(`preferences/${userId}`);
+
+        const subject = 'One of your tracked items has changed! | Tracky';
+        const body = `There is a change on your item ${item.title}! <br/>
+          Head to the Tracky app to see what's changed!!<br/><br/>
+          <a href="https://www.google.com">or see it on the website!</a>
+        `;
+
+        if (preferences.enableEmailNotifications) {
+          sendMail(user.email, subject, body, user.displayName);
+        }
       }
     }
   } catch (error) {
@@ -69,4 +109,4 @@ const runAll = async () => {
   });
 };
 
-module.exports = { runAll };
+module.exports = { runAll, sendMail };
