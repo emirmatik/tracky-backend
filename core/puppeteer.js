@@ -1,13 +1,9 @@
-const puppeteer = require('puppeteer-extra');
-const Stealth = require('puppeteer-extra-plugin-stealth');
+const puppeteer = require('puppeteer');
 const nodemailer = require('nodemailer');
 
-const { KnownDevices } = require('puppeteer');
 const { get, updateTrackedItem, auth } = require('../db/firebase');
 
-puppeteer.use(Stealth());
-
-const iPhone = KnownDevices['iPhone 13 Pro Max'];
+const iPhone = puppeteer.KnownDevices['iPhone 13 Pro Max'];
 
 const sendMail = (email, subject, text, username) => {
   const transporter = nodemailer.createTransport({
@@ -44,6 +40,9 @@ const checkItem = async (userId, item) => {
   const browser = await puppeteer.launch({
     args: [
       '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-gpu',
       '--no-sandbox',
       '--no-zygote',
     ],
@@ -52,6 +51,7 @@ const checkItem = async (userId, item) => {
       ? process.env.PUPPETEER_EXECUTABLE_PATH
       : puppeteer.executablePath(),
   });
+
   try {
     const page = await browser.newPage();
 
