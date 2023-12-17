@@ -42,18 +42,18 @@ const sendMail = (email, subject, text, username) => {
 
 const checkItem = async (userId, item) => {
   const browser = await puppeteer.launch({ headless: 'new' });
-  const page = await browser.newPage();
-
-  await page.emulate(iPhone);
-
-  const { html, url, xpath } = item;
-
-  if (!html || !url || !xpath) {
-    await browser.close();
-    return;
-  }
-
   try {
+    const page = await browser.newPage();
+
+    await page.emulate(iPhone);
+
+    const { html, url, xpath } = item;
+
+    if (!html || !url || !xpath) {
+      await browser.close();
+      return;
+    }
+
     await page.goto(url, { waitUntil: ['load'] });
 
     await page.waitForXPath(xpath, { timeout: 5_000 });
@@ -88,9 +88,9 @@ const checkItem = async (userId, item) => {
     }
   } catch (error) {
     // console.log(`No such HTML element for ${item.title}`);
+  } finally {
+    await browser.close();
   }
-
-  await browser.close();
 };
 
 const runAll = async () => {
